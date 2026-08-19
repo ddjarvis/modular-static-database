@@ -1,22 +1,22 @@
-# 3. Design Doc
+## 3. Design Doc
 
 You can keep this as the project’s living design document.
 
 ---
 
-# Project Design Doc
+## Project Design Doc
 
-## Project Name
+### Project Name
 
 Vanilla JS ESM Database App
 
-## Status
+### Status
 
 Draft / MVP planning
 
 ---
 
-## 1. Overview
+### 1. Overview
 
 A static, frontend-only database application built with vanilla JavaScript ES modules.
 
@@ -26,9 +26,9 @@ The implementation should avoid frameworks and rely on modular, composable vanil
 
 ---
 
-## 2. Goals
+### 2. Goals
 
-### Primary goals
+#### Primary goals
 
 - Build a lightweight client-side database experience
 - Support dynamic schema-driven records
@@ -37,7 +37,7 @@ The implementation should avoid frameworks and rely on modular, composable vanil
 - Support validated JSON import/export
 - Enable extensibility via ESM plugins
 
-### Non-goals for MVP
+#### Non-goals for MVP
 
 - Multi-user collaboration
 - Backend API integration
@@ -49,33 +49,33 @@ The implementation should avoid frameworks and rely on modular, composable vanil
 
 ---
 
-## 3. Core Principles
+### 3. Core Principles
 
-### 1. Storage is replaceable
+#### 1. Storage is replaceable
 
 No UI or domain code should directly call `localStorage`.
 
 All persistence goes through a `StorageProvider`.
 
-### 2. Schema is authoritative
+#### 2. Schema is authoritative
 
 Records must be validated against schemas before being saved or imported.
 
-### 3. Components are lifecycle-driven
+#### 3. Components are lifecycle-driven
 
 UI components must have predictable `mount`, `render`, and `unmount` behavior.
 
-### 4. Plugins are explicit
+#### 4. Plugins are explicit
 
 Extension points should be exposed through named hooks and events, not monkey-patching.
 
-### 5. ESM-first
+#### 5. ESM-first
 
 The app should be composed of native ES modules suitable for static hosting.
 
 ---
 
-## 4. High-Level Architecture
+### 4. High-Level Architecture
 
 ```text
 index.html
@@ -98,9 +98,9 @@ Screens   SchemaEngine   StorageProvider Hooks/Events
 
 ---
 
-## 5. Module Responsibilities
+### 5. Module Responsibilities
 
-## 5.1 App Shell
+### 5.1 App Shell
 
 Responsible for:
 
@@ -118,7 +118,7 @@ Not responsible for:
 
 ---
 
-## 5.2 Storage Abstraction
+### 5.2 Storage Abstraction
 
 Responsible for:
 
@@ -137,7 +137,7 @@ Future implementations:
 - remote API
 - file-based storage
 
-### Conceptual contract
+#### Conceptual contract
 
 ```js
 class StorageProvider {
@@ -148,13 +148,13 @@ class StorageProvider {
 }
 ```
 
-### Design rule
+#### Design rule
 
 The MVP may use LocalStorage, but the interface should be async-friendly so IndexedDB can be added later without breaking callers.
 
 ---
 
-## 5.3 Schema Engine
+### 5.3 Schema Engine
 
 Responsible for:
 
@@ -163,7 +163,7 @@ Responsible for:
 - validating records
 - exposing schema metadata to UI
 
-### Schema responsibilities
+#### Schema responsibilities
 
 - field names
 - field types
@@ -173,7 +173,7 @@ Responsible for:
 - enum/options
 - string/number/date constraints
 
-### Example conceptual field types
+#### Example conceptual field types
 
 - `string`
 - `number`
@@ -182,7 +182,7 @@ Responsible for:
 - `select`
 - `json`
 
-### Example schema shape
+#### Example schema shape
 
 ```js
 {
@@ -198,7 +198,7 @@ Responsible for:
 
 ---
 
-## 5.4 Record Store / Repository
+### 5.4 Record Store / Repository
 
 Responsible for:
 
@@ -214,7 +214,7 @@ This is the bridge between:
 - Storage Provider
 - UI
 
-### Conceptual record envelope
+#### Conceptual record envelope
 
 ```js
 {
@@ -232,7 +232,7 @@ This is the bridge between:
 
 ---
 
-## 5.5 UI Component Runtime
+### 5.5 UI Component Runtime
 
 Responsible for:
 
@@ -241,7 +241,7 @@ Responsible for:
 - managing local UI state
 - dispatching user intent events
 
-### Base lifecycle
+#### Base lifecycle
 
 ```js
 class Component {
@@ -251,7 +251,7 @@ class Component {
 }
 ```
 
-### Rules
+#### Rules
 
 - Components should not directly own business rules
 - Components should not directly access storage
@@ -260,7 +260,7 @@ class Component {
 
 ---
 
-## 5.6 Plugin / Hook System
+### 5.6 Plugin / Hook System
 
 Responsible for:
 
@@ -268,7 +268,7 @@ Responsible for:
 - emitting lifecycle hooks
 - allowing controlled extension of behavior
 
-### Initial hooks
+#### Initial hooks
 
 - `beforeSave`
 - `afterSave`
@@ -280,7 +280,7 @@ Responsible for:
 - `beforeExport`
 - `afterExport`
 
-### Conceptual hook flow
+#### Conceptual hook flow
 
 ```js
 await hooks.run("beforeSave", record);
@@ -288,13 +288,13 @@ await repository.save(record);
 await hooks.run("afterSave", record);
 ```
 
-### Design rule
+#### Design rule
 
 Plugins should be explicit and bounded. They should not silently replace core internals unless we intentionally introduce a service-override mechanism later.
 
 ---
 
-## 5.7 Import / Export System
+### 5.7 Import / Export System
 
 Responsible for:
 
@@ -303,7 +303,7 @@ Responsible for:
 - reporting import errors
 - preserving schema/record relationships
 
-### Export envelope
+#### Export envelope
 
 ```js
 {
@@ -315,7 +315,7 @@ Responsible for:
 }
 ```
 
-### Import rules
+#### Import rules
 
 - Validate structure first
 - Validate schemas second
@@ -325,9 +325,9 @@ Responsible for:
 
 ---
 
-## 6. MVP Scope
+### 6. MVP Scope
 
-## Included
+### Included
 
 - App shell
 - LocalStorage provider
@@ -339,7 +339,7 @@ Responsible for:
 - JSON import with validation
 - Basic plugin hooks
 
-## Excluded
+### Excluded
 
 - IndexedDB provider
 - API sync
@@ -351,7 +351,7 @@ Responsible for:
 
 ---
 
-## 7. Proposed Directory Blueprint
+### 7. Proposed Directory Blueprint
 
 This is a good starting structure for a static ESM app.
 
@@ -399,9 +399,9 @@ This is a good starting structure for a static ESM app.
 
 ---
 
-## 8. Key Data Flows
+### 8. Key Data Flows
 
-## 8.1 Create Record Flow
+### 8.1 Create Record Flow
 
 ```text
 User submits form
@@ -416,7 +416,7 @@ User submits form
 
 ---
 
-## 8.2 Load Records Flow
+### 8.2 Load Records Flow
 
 ```text
 Screen mounts
@@ -429,7 +429,7 @@ Screen mounts
 
 ---
 
-## 8.3 Import Flow
+### 8.3 Import Flow
 
 ```text
 User selects JSON file
@@ -445,7 +445,7 @@ User selects JSON file
 
 ---
 
-## 8.4 Export Flow
+### 8.4 Export Flow
 
 ```text
 User requests export
@@ -458,9 +458,9 @@ User requests export
 
 ---
 
-## 9. PWA Design Notes
+### 9. PWA Design Notes
 
-## Manifest
+### Manifest
 
 Should include:
 
@@ -474,9 +474,9 @@ Should include:
 
 ---
 
-## Service Worker Strategy
+### Service Worker Strategy
 
-### Cache naming
+#### Cache naming
 
 Use a hash-based cache name:
 
@@ -486,7 +486,7 @@ dbapp-cache-{sha256-hash}
 
 This helps invalidate caches cleanly when assets change.
 
-### Caching strategies
+#### Caching strategies
 
 | Asset type | Strategy |
 |---|---|
@@ -496,17 +496,17 @@ This helps invalidate caches cleanly when assets change.
 | Audio | lazy cache |
 | Dynamic requests | network-first default |
 
-### Important constraint
+#### Important constraint
 
 Since the MVP is static and local-first, PWA support should not complicate storage behavior. Offline support should first focus on app shell availability, not data sync.
 
 ---
 
-## 10. Major Architectural Decisions
+### 10. Major Architectural Decisions
 
 These are the decisions we should explicitly lock in before coding too far ahead.
 
-### Decision 1 — Storage contract style
+#### Decision 1 — Storage contract style
 
 Options:
 
@@ -519,7 +519,7 @@ Start with a record/collection-oriented API, backed internally by namespaced key
 
 ---
 
-### Decision 2 — Async storage API
+#### Decision 2 — Async storage API
 
 Options:
 
@@ -531,7 +531,7 @@ Use async API now, even if LocalStorage implementation is synchronous internally
 
 ---
 
-### Decision 3 — Schema evolution strategy
+#### Decision 3 — Schema evolution strategy
 
 Options:
 
@@ -544,7 +544,7 @@ Use schema version metadata and validation-first behavior. Full migrations can c
 
 ---
 
-### Decision 4 — UI state ownership
+#### Decision 4 — UI state ownership
 
 Options:
 
@@ -557,7 +557,7 @@ Use screen-level state for data views, with component-local state only for UI co
 
 ---
 
-### Decision 5 — Plugin power level
+#### Decision 5 — Plugin power level
 
 Options:
 
@@ -570,9 +570,9 @@ Start with async hooks that can modify payloads and optionally cancel operations
 
 ---
 
-## 11. Risks and Mitigations
+### 11. Risks and Mitigations
 
-### Risk 1 — LocalStorage limits
+#### Risk 1 — LocalStorage limits
 
 LocalStorage is small and synchronous.
 
@@ -581,7 +581,7 @@ Keep storage abstract so IndexedDB can replace it later.
 
 ---
 
-### Risk 2 — Schema changes break records
+#### Risk 2 — Schema changes break records
 
 If schema evolves too freely, old records may become invalid.
 
@@ -590,7 +590,7 @@ Store schema version with records and define compatibility rules early.
 
 ---
 
-### Risk 3 — Vanilla components become messy
+#### Risk 3 — Vanilla components become messy
 
 Without discipline, DOM code can become tangled.
 
@@ -599,7 +599,7 @@ Enforce lifecycle methods and clear ownership of DOM cleanup.
 
 ---
 
-### Risk 4 — Plugin hooks become unpredictable
+#### Risk 4 — Plugin hooks become unpredictable
 
 If hook ordering and mutation rules are unclear, plugins become fragile.
 
@@ -608,7 +608,7 @@ Define hook payload contracts and execution order early.
 
 ---
 
-### Risk 5 — Import becomes unsafe
+#### Risk 5 — Import becomes unsafe
 
 Importing JSON can corrupt local data if not validated carefully.
 
@@ -617,7 +617,7 @@ Use staged validation and avoid committing partial imports unless explicitly all
 
 ---
 
-## 12. Acceptance Criteria for MVP
+### 12. Acceptance Criteria for MVP
 
 The MVP is complete when:
 

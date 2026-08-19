@@ -1,8 +1,8 @@
-# 2. Recommended Milestones
+## 2. Recommended Milestones
 
 These are the places where I recommend we pause and discuss trade-offs before implementation.
 
-## Milestone A — Storage contract
+### Milestone A — Storage contract
 
 Decide whether the storage API should look like:
 
@@ -12,7 +12,7 @@ Decide whether the storage API should look like:
 
 This affects everything.
 
-## Milestone B — Schema versioning
+### Milestone B — Schema versioning
 
 Decide whether schema changes:
 
@@ -21,7 +21,7 @@ Decide whether schema changes:
 - migrate old records
 - require export/import
 
-## Milestone C — UI state model
+### Milestone C — UI state model
 
 Decide whether UI state is:
 
@@ -30,7 +30,7 @@ Decide whether UI state is:
 - global app store
 - event-driven
 
-## Milestone D — Plugin mutation power
+### Milestone D — Plugin mutation power
 
 Decide whether plugins can:
 
@@ -39,6 +39,6 @@ Decide whether plugins can:
 - cancel operations
 - replace core services
 
-## Milestone E — PWA caching model
+### Milestone E — PWA caching model
 
 Decide how aggressive offline support should be.

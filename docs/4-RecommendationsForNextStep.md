@@ -1,4 +1,4 @@
-# 4. My Recommendation for the Very Next Step
+## 4. My Recommendation for the Very Next Step
 
 Yes, this is the right first step.
 
@@ -13,18 +13,18 @@ Once those are stable, implementation becomes much cleaner.
 
 ---
 
-# 5. Suggested Immediate Next Milestone
+## 5. Suggested Immediate Next Milestone
 
 Let’s pause here and decide this first major trade-off:
 
-## Should the storage layer be:
-### A. Simple key-value oriented
+### Should the storage layer be:
+#### A. Simple key-value oriented
 Easiest to implement, but weaker structure.
 
-### B. Collection/record oriented
+#### B. Collection/record oriented
 Better fit for a database app and future IndexedDB/API support.
 
-### C. Fully abstract repository style
+#### C. Fully abstract repository style
 More flexible, but slightly more upfront design.
 
 My recommendation is **B: collection/record oriented**.

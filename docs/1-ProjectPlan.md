@@ -1,10 +1,10 @@
-# 1. Project Plan
+## 1. Project Plan
 
-## Phase 0 — Foundations
+### Phase 0 — Foundations
 
 Goal: establish project shape, module boundaries, and development workflow.
 
-### Deliverables
+#### Deliverables
 
 - Static file structure
 - ES module entry point
@@ -12,24 +12,24 @@ Goal: establish project shape, module boundaries, and development workflow.
 - Simple event bus or plugin host
 - Local development workflow
 
-### Key decisions
+#### Key decisions
 
 - No build step or minimal build step?
 - How modules are loaded
 - Where app state lives
 - How components are mounted
 
-### Exit criteria
+#### Exit criteria
 
 You can open `index.html`, load the app via ES modules, and render a minimal shell.
 
 ---
 
-## Phase 1 — Core Storage Abstraction
+### Phase 1 — Core Storage Abstraction
 
 Goal: isolate persistence behind a stable interface.
 
-### Deliverables
+#### Deliverables
 
 - `StorageProvider` contract
 - `LocalStorageProvider`
@@ -37,18 +37,18 @@ Goal: isolate persistence behind a stable interface.
 - Serialization/deserialization boundary
 - Error handling strategy
 
-### Key decisions
+#### Key decisions
 
 - What storage keys look like
 - Whether storage is synchronous or async
 - How future IndexedDB provider will fit in
 - How records are namespaced
 
-### Exit criteria
+#### Exit criteria
 
 The app can save and read generic data through a storage adapter without UI or domain logic knowing it is LocalStorage.
 
-### Milestone discussion point
+#### Milestone discussion point
 
 This is a good place to pause and decide:
 
@@ -56,11 +56,11 @@ This is a good place to pause and decide:
 
 ---
 
-## Phase 2 — Schema Engine
+### Phase 2 — Schema Engine
 
 Goal: define data structure, field types, and validation rules.
 
-### Deliverables
+#### Deliverables
 
 - Schema model
 - Field definitions
@@ -68,18 +68,18 @@ Goal: define data structure, field types, and validation rules.
 - Schema registry
 - Schema versioning strategy
 
-### Key decisions
+#### Key decisions
 
 - How schemas are stored
 - How fields are represented
 - How validation errors are returned
 - Whether schema changes migrate old records or only validate them
 
-### Exit criteria
+#### Exit criteria
 
 A schema can describe a record, validate it, and reject invalid data.
 
-### Milestone discussion point
+#### Milestone discussion point
 
 This is where we should decide:
 
@@ -87,11 +87,11 @@ This is where we should decide:
 
 ---
 
-## Phase 3 — Record Domain Model
+### Phase 3 — Record Domain Model
 
 Goal: create the core record lifecycle.
 
-### Deliverables
+#### Deliverables
 
 - Record identity
 - Record timestamps
@@ -99,24 +99,24 @@ Goal: create the core record lifecycle.
 - Create/read/update/delete operations
 - Import/export-friendly record envelope
 
-### Key decisions
+#### Key decisions
 
 - Record shape
 - ID generation
 - Optimistic vs strict validation
 - Soft delete vs hard delete
 
-### Exit criteria
+#### Exit criteria
 
 The app can perform CRUD operations against a schema-validated record collection.
 
 ---
 
-## Phase 4 — Vanilla Component Runtime
+### Phase 4 — Vanilla Component Runtime
 
 Goal: create a small but disciplined UI architecture.
 
-### Deliverables
+#### Deliverables
 
 - Base component lifecycle
 - Mount/render/unmount pattern
@@ -124,18 +124,18 @@ Goal: create a small but disciplined UI architecture.
 - DOM ownership rules
 - Component communication strategy
 
-### Key decisions
+#### Key decisions
 
 - How components receive state
 - How components emit events
 - Whether components own DOM cleanup
 - How routing/screen switching works
 
-### Exit criteria
+#### Exit criteria
 
 You can compose UI screens from components without leaking DOM state or event listeners.
 
-### Milestone discussion point
+#### Milestone discussion point
 
 We should pause here to decide:
 
@@ -143,11 +143,11 @@ We should pause here to decide:
 
 ---
 
-## Phase 5 — MVP Features
+### Phase 5 — MVP Features
 
 Goal: implement the user-facing database features.
 
-### MVP scope
+#### MVP scope
 
 - Dynamic record list view
 - Record create form
@@ -157,17 +157,17 @@ Goal: implement the user-facing database features.
 - JSON export
 - JSON import with validation
 
-### Exit criteria
+#### Exit criteria
 
 A user can define a schema, create records, edit records, export data, and import data safely.
 
 ---
 
-## Phase 6 — Plugin / Hook System
+### Phase 6 — Plugin / Hook System
 
 Goal: make the app extensible without core modification.
 
-### Deliverables
+#### Deliverables
 
 - Hook registry
 - Event bus
@@ -180,24 +180,24 @@ Goal: make the app extensible without core modification.
   - `afterExport`
 - Plugin registration format
 
-### Key decisions
+#### Key decisions
 
 - Hook execution order
 - Async hook support
 - Error handling in plugins
 - Whether plugins can block operations
 
-### Exit criteria
+#### Exit criteria
 
 A plugin can observe or modify app behavior through documented hooks.
 
 ---
 
-## Phase 7 — PWA Readiness
+### Phase 7 — PWA Readiness
 
 Goal: prepare offline support and installability.
 
-### Deliverables
+#### Deliverables
 
 - Web app manifest
 - Service worker registration
@@ -205,7 +205,7 @@ Goal: prepare offline support and installability.
 - Asset caching strategy
 - Offline fallback behavior
 
-### Caching strategy
+#### Caching strategy
 
 - Cache name based on SHA-256 asset hash
 - Cache-first for fonts
@@ -213,6 +213,6 @@ Goal: prepare offline support and installability.
 - Lazy caching for audio
 - Network-first default for pages or dynamic requests
 
-### Exit criteria
+#### Exit criteria
 
 The app installs as a PWA and behaves predictably offline.
