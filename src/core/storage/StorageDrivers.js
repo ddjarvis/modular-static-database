@@ -5,6 +5,6 @@ export default function (ns = 'myApp') {
     // app_ns = namespace to not delete other data from saim domain
     const app_ns = `app_${ns}`;
     return {
-        localStorage: driver_localStorage('app_'+app_ns)
+        localStorage: driver_localStorage(app_ns)
     };
 };
