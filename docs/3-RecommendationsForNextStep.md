@@ -1,6 +1,4 @@
-## 4. My Recommendation for the Very Next Step
-
-Yes, this is the right first step.
+## 3. My Recommendation for the Very Next Step
 
 Now that we have the plan and design doc, the next best step is **not** to jump straight into UI. Instead, I recommend we lock in the **core contracts first**:
 
@@ -13,7 +11,7 @@ Once those are stable, implementation becomes much cleaner.
 
 ---
 
-## 5. Suggested Immediate Next Milestone
+## 4. Suggested Immediate Next Milestone
 
 Let’s pause here and decide this first major trade-off:
 
