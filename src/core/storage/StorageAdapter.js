@@ -9,19 +9,19 @@ export default class StorageAdapter {
         this.driver = driver;
     }
     
-    get(key) { return this.driver.get(key); }
-    set(key, value) { return this.driver.set(key, value); }
-    remove(key) { return this.driver.remove(key); }
+    async get(key) { return this.driver.get(key); }
+    async set(key, value) { return this.driver.set(key, value); }
+    async remove(key) { return this.driver.remove(key); }
 
-    import(data) {
+    async import(data) {
         if (typeof this.driver.import !== "function") {
             throw new Error(`driver[${this.driver.name}] does not implement import()`);
         }
         return this.driver.import(data);
     }
-    export() {
+    async export() {
         if (typeof this.driver.export !== "function") {
-            throw new Error(`driver[${this.driver.name}] does not implement import()`);
+            throw new Error(`driver[${this.driver.name}] does not implement export()`);
         }
         return this.driver.export();
     }
