@@ -14,7 +14,7 @@ Draft / MVP planning
 
 A static, frontend-only database application built with vanilla JavaScript ES modules.
 
-The app allows users to define schemas, manage records dynamically, validate data, and import/export JSON. It is designed to be extensible through plugins and prepared for future offline/PWA support.
+The app allows users to define libraries, manage entries dynamically, validate data, and import/export JSON. A library is a self-contained table-like collection of entries with typed fields, pages, groups, display designations, and configurable uniqueness. It is designed to be extensible through plugins and prepared for future offline/PWA support.
 
 The implementation should avoid frameworks and rely on modular, composable vanilla JS patterns.
 
@@ -25,7 +25,7 @@ The implementation should avoid frameworks and rely on modular, composable vanil
 ### Primary goals
 
 - Build a lightweight client-side database experience
-- Support dynamic schema-driven records
+- Support dynamic library-driven entries
 - Keep persistence swappable
 - Maintain a clean component lifecycle
 - Support validated JSON import/export
@@ -37,7 +37,7 @@ The implementation should avoid frameworks and rely on modular, composable vanil
 - Backend API integration
 - Authentication
 - Realtime sync
-- Advanced relational modeling
+- Relationships and cross-library linking
 - Complex query engine
 - Full offline-first mutation sync
 
@@ -51,9 +51,9 @@ No UI or domain code should directly call `localStorage`.
 
 All persistence goes through a `StorageProvider`.
 
-### 2. Schema is authoritative
+### 2. Library is authoritative
 
-Records must be validated against schemas before being saved or imported.
+Entries must be validated against their library before being saved or imported. Computed fields are derived from stored values and are never persisted as entry data.
 
 ### 3. Components are lifecycle-driven
 
@@ -84,7 +84,7 @@ UI Components    App Services      Plugin System
     |        +-------+-------+          |
     |        |               |          |
     v        v               v          v
-Screens   SchemaEngine   StorageProvider Hooks/Events
+Screens   LibraryEngine  StorageProvider Hooks/Events
                              |
                              v
                     LocalStorageProvider
@@ -108,7 +108,7 @@ Not responsible for:
 
 - direct persistence
 - detailed form logic
-- schema validation internals
+- library validation internals
 
 ---
 
@@ -148,81 +148,106 @@ The MVP may use LocalStorage, but the interface should be async-friendly so Inde
 
 ---
 
-## 5.3 Schema Engine
+## 5.3 Library Engine
 
 Responsible for:
 
-- defining entity schemas
-- defining fields
-- validating records
-- exposing schema metadata to UI
+- defining libraries, groups, pages, and fields
+- validating entries against libraries
+- exposing library and field metadata to UI
+- resolving entry names, descriptions, statuses, and computed values
 
-### Schema responsibilities
+### Library responsibilities
 
-- field names
+- library names and group membership
+- field IDs, names, types, hints, and ordering
+- page and subheader organization
 - field types
 - required fields
 - default values
-- unique constraints
+- configurable unique fields, including composite uniqueness
 - enum/options
 - string/number/date constraints
+- entry name, description, and status designations
+- library version metadata
 
-### Example conceptual field types
+### Initial field types
 
-- `string`
+- `text`
 - `number`
 - `boolean`
 - `date`
 - `select`
 - `json`
+- `computed`
 
-### Example schema shape
+The initial computed field operation is `age`. It derives a person's age in whole years from a date field and is recalculated when the entry is read or displayed.
+
+### Example library shape
 
 ```js
 {
-  id: "book",
-  label: "Book",
+  id: "lib_people",
+  name: "People",
+  groupId: "group_default",
   version: 1,
   fields: [
-    { name: "title", type: "string", required: true },
-    { name: "pages", type: "number", min: 0 }
-  ]
+    { id: "birthday", name: "Birthday", type: "date", required: true, pageId: "page_main" },
+    {
+      id: "age",
+      name: "Age",
+      type: "computed",
+      pageId: "page_main",
+      advanced: { operation: "age", sourceField: "birthday", unit: "years" }
+    }
+  ],
+  pages: [{ id: "page_main", name: "MAIN", order: 0, fields: ["birthday", "age"], subheaders: [] }],
+  options: {
+    entryNameFields: ["birthday"],
+    entryDescriptionFields: [],
+    entryStatusField: null,
+    uniqueFields: [],
+    defaultSort: { field: "birthday", direction: "asc" }
+  }
 }
 ```
 
----
+Field values are stored by field ID rather than display name so that fields can be renamed without changing entry data.
 
-## 5.4 Record Store / Repository
+## 5.4 Entry Store / Repository
 
 Responsible for:
 
 - CRUD operations
-- applying schema validation
-- generating record IDs
+- applying library validation
+- generating entry IDs
 - managing timestamps
 - delegating persistence to storage
+- enforcing library uniqueness rules
+- resolving computed fields on read
 
 This is the bridge between:
 
-- Schema Engine
+- Library Engine
 - Storage Provider
 - UI
 
-### Conceptual record envelope
+### Conceptual entry envelope
 
 ```js
 {
-  id: "rec_abc123",
-  schemaId: "book",
-  data: {
-    title: "Example",
-    pages: 120
+  id: "entry_abc123",
+  libraryId: "lib_people",
+  values: {
+    birthday: "1990-06-15"
   },
   createdAt: "2026-08-20T00:00:00.000Z",
-  updatedAt: "2026-08-20T00:00:00.000Z",
-  schemaVersion: 1
+  modifiedAt: "2026-08-20T00:00:00.000Z",
+  libraryVersion: 1
 }
 ```
+
+Computed values such as `age` are not included in `values`; they are derived when needed.
 
 ---
 
@@ -277,9 +302,9 @@ Responsible for:
 ### Conceptual hook flow
 
 ```js
-await hooks.run("beforeSave", record);
-await repository.save(record);
-await hooks.run("afterSave", record);
+await hooks.run("beforeSave", entry);
+await repository.save(entry);
+await hooks.run("afterSave", entry);
 ```
 
 ### Design rule
@@ -295,27 +320,32 @@ Responsible for:
 - serializing app data to JSON
 - validating imported JSON
 - reporting import errors
-- preserving schema/record relationships
+- preserving group, library, page, field, and entry relationships
 
 ### Export envelope
 
 ```js
 {
   app: "vanilla-db",
-  version: 1,
+  formatVersion: 2,
   exportedAt: "2026-08-20T00:00:00.000Z",
-  schemas: [],
-  records: []
+  groups: [],
+  libraries: [],
+  entries: []
 }
 ```
 
 ### Import rules
 
 - Validate structure first
-- Validate schemas second
-- Validate records third
+- Validate groups and libraries second
+- Validate pages, fields, designations, and computed-field definitions third
+- Validate entries against their owning library fourth
+- Validate uniqueness before committing
 - Reject or collect errors before committing
 - Prefer atomic import if possible
+
+Import format version and library version are separate. The format version describes the JSON envelope; the library version describes the evolution of one library's definition. Computed values such as age are not exported; they are recalculated after import.
 
 ---
 
@@ -325,10 +355,15 @@ Responsible for:
 
 - App shell
 - LocalStorage provider
-- Schema engine
-- Record repository
+- Library engine
+- Entry repository
+- Library groups and pages
+- Typed fields and structured validation
+- Entry name, description, and status designations
+- Configurable single-field and composite uniqueness
+- Computed age fields based on date fields
 - Dynamic CRUD UI
-- Schema manager UI
+- Library manager UI
 - JSON export
 - JSON import with validation
 - Basic plugin hooks
@@ -338,7 +373,9 @@ Responsible for:
 - IndexedDB provider
 - API sync
 - Auth
-- relational joins
+- all cross-library links and relationships
+- permissions and cascade behavior
+- script fields and arbitrary JavaScript execution
 - advanced querying
 - collaborative editing
 - full offline mutation sync
@@ -367,12 +404,12 @@ This is a good starting structure for a static ESM app.
 │   │   ├── storage/
 │   │   │   ├── StorageProvider.js
 │   │   │   └── LocalStorageProvider.js
-│   │   ├── schema/
-│   │   │   ├── Schema.js
-│   │   │   ├── SchemaRegistry.js
+│   │   ├── library/
+│   │   │   ├── Library.js
+│   │   │   ├── LibraryRegistry.js
 │   │   │   └── validators.js
-│   │   ├── records/
-│   │   │   ├── RecordStore.js
+│   │   ├── entries/
+│   │   │   ├── EntryStore.js
 │   │   │   └── createId.js
 │   │   └── plugins/
 │   │       ├── PluginRegistry.js
@@ -395,13 +432,13 @@ This is a good starting structure for a static ESM app.
 
 ## 8. Key Data Flows
 
-## 8.1 Create Record Flow
+## 8.1 Create Entry Flow
 
 ```text
 User submits form
   -> UI emits save intent
-  -> RecordStore.create()
-  -> Schema validation
+  -> EntryStore.create()
+  -> Library validation
   -> beforeSave hook
   -> StorageProvider.set()
   -> afterSave hook
@@ -410,13 +447,13 @@ User submits form
 
 ---
 
-## 8.2 Load Records Flow
+## 8.2 Load Entries Flow
 
 ```text
 Screen mounts
-  -> RecordStore.list(schemaId)
+  -> EntryStore.list(libraryId)
   -> StorageProvider.list()
-  -> deserialize records
+  -> deserialize entries
   -> afterLoad hook
   -> render UI
 ```
@@ -429,8 +466,8 @@ Screen mounts
 User selects JSON file
   -> parse file
   -> validate envelope
-  -> validate schemas
-  -> validate records
+  -> validate libraries
+  -> validate entries
   -> beforeImport hook
   -> persist batch
   -> afterImport hook
@@ -444,7 +481,7 @@ User selects JSON file
 ```text
 User requests export
   -> beforeExport hook
-  -> collect schemas + records
+  -> collect groups + libraries + entries
   -> serialize JSON envelope
   -> afterExport hook
   -> trigger download
@@ -506,10 +543,10 @@ Options:
 
 - key/value
 - collection/document
-- table/record
+- table/entry
 
 Recommendation:
-Start with a record/collection-oriented API, backed internally by namespaced keys.
+Use a collection-oriented API for groups, libraries, and entries, backed internally by namespaced keys.
 
 ---
 
@@ -525,7 +562,7 @@ Use async API now, even if LocalStorage implementation is synchronous internally
 
 ---
 
-### Decision 3 — Schema evolution strategy
+### Decision 3 — Library evolution strategy
 
 Options:
 
@@ -534,11 +571,21 @@ Options:
 - migration pipeline
 
 Recommendation for MVP:
-Use schema version metadata and validation-first behavior. Full migrations can come later.
+Use library version metadata and validation-first behavior. Compatible edits may retain the version; breaking edits require an explicit version change. Full migrations can come later.
+
+Library definitions use stable field IDs. Display names may change without changing stored entry values.
 
 ---
 
-### Decision 4 — UI state ownership
+### Decision 4 — Relationships and computed fields
+
+Relationships are completely deferred from the MVP. This includes one-way links, bidirectional links, permissions, cascade behavior, and relational querying.
+
+The MVP supports one safe computed operation: `age`, calculated in whole years from a date field when an entry is read or displayed. Computed values are not stored or imported/exported as entry values. General expressions and script fields are deferred.
+
+---
+
+### Decision 5 — UI state ownership
 
 Options:
 
@@ -551,7 +598,7 @@ Use screen-level state for data views, with component-local state only for UI co
 
 ---
 
-### Decision 5 — Plugin power level
+### Decision 6 — Plugin power level
 
 Options:
 
@@ -575,16 +622,23 @@ Keep storage abstract so IndexedDB can replace it later.
 
 ---
 
-### Risk 2 — Schema changes break records
+### Risk 2 — Library changes break entries
 
-If schema evolves too freely, old records may become invalid.
+If library definitions evolve too freely, old entries may become invalid.
 
 Mitigation:
-Store schema version with records and define compatibility rules early.
+Store library version with entries, use stable field IDs, and define compatibility rules early.
+
+### Risk 3 — Uniqueness and derived values create confusing behavior
+
+Composite uniqueness and calculated fields can produce unexpected validation or display results if their rules are implicit.
+
+Mitigation:
+Validate uniqueness before persistence, document the comparison semantics, validate computed-field source references, and keep computed values read-only and non-persistent.
 
 ---
 
-### Risk 3 — Vanilla components become messy
+### Risk 4 — Vanilla components become messy
 
 Without discipline, DOM code can become tangled.
 
@@ -593,7 +647,7 @@ Enforce lifecycle methods and clear ownership of DOM cleanup.
 
 ---
 
-### Risk 4 — Plugin hooks become unpredictable
+### Risk 5 — Plugin hooks become unpredictable
 
 If hook ordering and mutation rules are unclear, plugins become fragile.
 
@@ -602,7 +656,7 @@ Define hook payload contracts and execution order early.
 
 ---
 
-### Risk 5 — Import becomes unsafe
+### Risk 6 — Import becomes unsafe
 
 Importing JSON can corrupt local data if not validated carefully.
 
@@ -615,12 +669,99 @@ Use staged validation and avoid committing partial imports unless explicitly all
 
 The MVP is complete when:
 
-- a schema can be created, edited, and deleted
-- records can be created, viewed, edited, and deleted
-- records are validated against their schema
+- a library can be created, edited, grouped, and deleted
+- fields can be organized into pages and subheaders
+- entries can be created, viewed, edited, and deleted within a library
+- entries are validated against their library
+- entry name, description, and status designations resolve correctly
+- single-field and composite uniqueness rules are enforced
+- age fields calculate from birthday/date fields without being stored
 - data persists across reloads using LocalStorage
 - JSON export produces a valid structured file
-- JSON import validates before committing
+- JSON import validates groups, libraries, fields, pages, and entries before committing
+- imported data is committed atomically
+- cross-library links are not required or accepted in the MVP format
 - UI components unmount cleanly
 - plugin hooks fire at documented points
 - app can be served statically
+
+---
+
+## 13. Deferred Future Work
+
+The following capabilities are intentionally documented for future planning but are not part of the MVP. Adding them later should preserve the current Library and Entry contracts where possible.
+
+### Relationships and cross-library links
+
+- Link fields referencing entries in another library
+- One-to-one, one-to-many, many-to-one, and many-to-many cardinality
+- Lazy link resolution
+- Referential integrity and orphan-link validation
+- Bidirectional relationship maintenance
+- Junction-table optimization for many-to-many relationships
+- Cross-library querying and relational views
+
+### Cross-library access control
+
+- Per-library permissions for linked libraries
+- Read, write, read/write, and no-access modes
+- Permission validation during link resolution and mutation
+- Explicit handling of circular relationships
+
+### Cascading behavior
+
+- Configurable cascade deletes and updates
+- Restricting deletion when dependent entries exist
+- Clear transaction and rollback behavior for multi-library changes
+
+### Expanded computed fields
+
+- General calculation fields with a safe expression language
+- Date arithmetic and date-offset calculations
+- Dependency tracking and recalculation ordering
+- Circular dependency detection
+- Additional result types and formatting rules
+
+### Script fields
+
+- User-defined script fields
+- Access to a constrained fields context
+- Sandboxed execution, preferably isolated from the main UI context
+- Execution limits, error reporting, and deterministic behavior
+
+Script fields must not be implemented with unrestricted `eval` or `Function` execution. Their security model must be designed and tested separately before adoption.
+
+### Additional field types and options
+
+- Integer, real-number, and currency fields
+- Time and datetime fields
+- Image/media fields beyond URL references
+- Radio, multiselect, and checklist fields
+- Hyperlink fields with URL validation
+- Field-specific formatting, units, precision, and display options
+
+### Library and entry enhancements
+
+- Advanced querying and filtering
+- Saved views and multiple sort/filter configurations
+- More extensive entry-card layouts
+- Additional group and page management features
+- Field migration tooling for breaking library changes
+- Soft deletion and archival workflows
+
+### Storage and platform enhancements
+
+- IndexedDB storage provider
+- Remote/API storage provider
+- Backend synchronization
+- Conflict resolution and offline mutation queues
+- Full PWA support, including service-worker caching and install metadata
+
+### Product capabilities outside the MVP
+
+- Authentication and authorization
+- Multi-user collaboration
+- Realtime synchronization
+- Audit history and change tracking
+
+Each deferred capability should receive its own design decision, validation rules, migration strategy, and focused tests before implementation. Deferred features must not be added by weakening the MVP's validation, atomic import, storage abstraction, or lifecycle rules.
