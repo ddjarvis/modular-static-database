@@ -20,7 +20,7 @@ export default class StorageAdapter {
         return this.driver.import(data);
     }
     export(keys) {
-        if (typeof this.driver.import !== "function") {
+        if (typeof this.driver.export !== "function") {
             throw new Error(`driver[${this.driver.name}] does not implement import()`);
         }
         return this.driver.export(keys);
