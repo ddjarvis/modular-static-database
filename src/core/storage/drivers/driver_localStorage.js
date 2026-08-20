@@ -1,4 +1,5 @@
 const driver_localStorage = {
+    name: 'localStorage',
     get: key => JSON.parse(localStorage.getItem(key)),
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
     remove: key => localStorage.removeItem(key),
